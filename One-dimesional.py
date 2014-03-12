@@ -31,6 +31,7 @@ def deriv(point):
     #print str(d)
     f = lambdify(x, d, 'numpy')
     return f(point)
+ 
     
 def deriv2(point):
     x = Symbol('x')
@@ -41,8 +42,6 @@ def deriv2(point):
     return f(point)
     
     
-    
-  
 def plotFun():
     '''
     Helpful function for plotting your function
@@ -97,9 +96,7 @@ def dsc(x0, delta):
     
 def dsc_pauell(x0, delta, eps):
     dsc_res = dsc(x0, delta)
-    
     print "Pauell stage..."
-    
     a = dsc_res[0]
     b = dsc_res[1]
     xmin = dsc_res[2]
@@ -133,7 +130,6 @@ def dsc_pauell(x0, delta, eps):
         print "a = %8.5f, min = %8.5f b = %8.5f" % (a, xmin, b)    
         
     
-    
 def dix(a, b, delta):
     print "Starting dichotomy method..."
     while round(abs(b-a), 3) > abs(delta):
@@ -144,7 +140,6 @@ def dix(a, b, delta):
             b = y
         else:
             a = x 
-        
     print "[%8.5f; %8.5f] = %8.5f" % (a, b, (a+b)/2)        
 
 
