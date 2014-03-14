@@ -189,20 +189,28 @@ def newton(a, delta):
         print "xk = %8.5f, f'(xk) = %8.5f" % (xn, deriv(xn))          
 
 
-def chords(a, b, delta):
+def chords(a, b, eps):
     '''
-        needs some rework ;)
+        thanks to @FlyingPirate
     '''
-    if deriv(a)*deriv(b)>0:
-        print "Derivatives have the same sign!"
-        
-    while abs(round(deriv(a), 3)) > delta:
-        tmp = b
-        b = b - deriv(b)*(b-a)/(deriv((b) - deriv(a)))
-        a = tmp
-        print "a = %8.5f, b = %8.5f, f'(b) = %8.5f" % (a, b, deriv(b))
-    print "Answer: %8.5f" %((a+b)/2)    
+    xApprox = b - ((deriv(b) * (b - a)) / (deriv(b) - deriv(a)))
+    while deriv(xApprox) > eps:
+        if signum(deriv(xApprox)) * signum(deriv(a)) > 0:
+            a = xApprox            
+        else:
+            b = xApprox
+        print "[%8.5f, %8.5f]"  % (a, b)   
+        xApprox = b - ((deriv(b) * (b - a)) / (deriv(b) - deriv(a)))        
+    return xApprox
+    
 
+def signum(x): 
+    if x < 0: 
+        return -1 
+    elif x == 0: 
+        return 0 
+    else: 
+        return 1 
 
         
     
