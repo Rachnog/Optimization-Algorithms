@@ -3,7 +3,7 @@
 Created on Thu Mar 13 19:25:20 2014
 
 Rosenbrock's optimization algorithm with visualization
-Some helpful outputs for better understanding are commented ('#')
+Some helpful outputs for better intuition are commented ('#')
  
 @author: Alex
 """
