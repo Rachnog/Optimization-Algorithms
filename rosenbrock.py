@@ -22,9 +22,11 @@ def perpendicular(a):
     return b
 
 
-def fun(dot):
-    #return 4*(dot[0]-5)**2 + (dot[1]-6)**2
-    return (dot[0] - variant)**2 - dot[0]*dot[1] + 3*dot[1]**2
+def fun(x):
+    #return 4*(x[0]-5)**2 + (x[1]-6)**2
+    return (x[0] - variant)**2 - x[0]*x[1] + 3*x[1]**2
+    #return (x[0] - 3)**2 + x[0] * x[1] + 3 *x[1]**2
+    
 
 def plot(points):
     '''
@@ -66,41 +68,42 @@ def rozenbrock(x0, lmb, epsilon1, epsilon2, alpha, beta):
     s1 = [1, 0]  # s1 vector
     s2 = [0, 1]  #s2 vector
     N = 0  # iterations count
-    success = []
+    success1 = []
+    success2 = []
     points = []
     points.append(x0)
 
     while True:
-        x1 = [x0[0] + lmb[0]*s1[0], x0[1] + lmb[1]*s1[1]]
+        x1 = [x0[0] + lmb[0]*s1[0], x0[1] + lmb[0]*s1[1]]
         #print "x = [%8.5f, %8.5f], f(x) = %8.5f" %(x1[0], x1[1], fun(x1))
         if fun(x1) < fun(x0):
             #print "f(x) = %8.5f < f(x0) = %8.5f YEAP" %(fun(x1), fun(x0))
-            success.append("Y")
+            success1.append("Y")
             lmb[0] *= alpha
             #print "lambda for s1 = %8.5f" % lmb[0]
             x0 = x1[:]
  
         elif fun(x1) > fun(x0):
             #print "f(x) = %8.5f > f(x0) = %8.5f NOPE" %(fun(x1), fun(x0))
-            success.append("N")
+            success1.append("N")
             lmb[0] *= beta
             #print "lambda for s1 = %8.5f" % lmb[0]
  
-        x2 = [x0[0] + lmb[0]*s2[0], x0[1] + lmb[1]*s2[1]]
+        x2 = [x0[0] + lmb[1]*s2[0], x0[1] + lmb[1]*s2[1]]
         #print "x = [%8.5f, %8.5f], f(x) = %8.5f" %(x2[0], x2[1], fun(x2))
         if fun(x2) < fun(x0):
            #print "f(x) = %8.5f < f(x0) = %8.5f YEAP" %(fun(x2), fun(x0))
-            success.append("Y")
+            success2.append("Y")
             lmb[1] *= alpha
             #print "lambda for s2 = %8.5f" % lmb[1]
             x0 = x2[:]
         elif fun(x2) > fun(x0):
             #print "f(x) = %8.5f > f(x0) = %8.5f NOPE" %(fun(x2), fun(x0))
-            success.append("N")
+            success2.append("N")
             lmb[1] *= beta
             #print "lambda for s2 = %8.5f" % lmb[1]
  
-        if success[len(success)-1] == "N" and success[len(success)-2] == "N" and "Y" in success:
+        if success1[len(success1)-1] == "N" and success2[len(success2)-1] == "N" and "Y" in success1 and "Y" in success2:
             #print success
             print "Our stop point: [%8.5f, %8.5f]" % (x0[0], x0[1])
             s1 = [x0[0] - start[0], x0[1] - start[1]]
@@ -127,7 +130,8 @@ def rozenbrock(x0, lmb, epsilon1, epsilon2, alpha, beta):
             
             points.append(x0)
             start = x0[:]
-            success = []
+            success1 = []
+            success2 = []
             N+=1
             print "_______________________________________________________________________________________________________________"
             
