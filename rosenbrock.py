@@ -60,7 +60,7 @@ def rozenbrock(x0, lmb, epsilon1, epsilon2, alpha, beta):
         x0 - start point, define as [x, y]
         lmb - delta x, define as [0.1, 0.1]
         epsilon1, epsilon2 - estimates errors
-        alpha, beta - coefficients for increase\decrease step
+        alpha, beta - coefficients for increasing\decreasing step
         success = array for saving YES\NO answers
     """
 
@@ -134,9 +134,6 @@ def rozenbrock(x0, lmb, epsilon1, epsilon2, alpha, beta):
             success2 = []
             N+=1
             print "_______________________________________________________________________________________________________________"
-            
-   
-    #for i in range(len(points)):
-    #    print str(points[i][0]) + ", " + str(points[i][1])
+
         
     plot(points)     

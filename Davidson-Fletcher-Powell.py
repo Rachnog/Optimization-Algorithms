@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Apr 21 13:46:36 2014
-
 @author: Alex
+
+Davidson-Fletcher-Powell optimization algorithm
+Uses Svenn and gold search for one-dimensional search
 """
 import math
 import numpy as np
@@ -223,14 +225,7 @@ def dfp(x0, eps1, eps2):
             
             A = A + resOne - resTwo
             print "MATRIX A"
-            print A
-            
-            """
-            if fun(x0) < fun(x1):
-                print "RESTART"
-                A = np.eye(len(x0))    
-                restart = restart+1
-            """    
+            print A 
             
             x0 = x1
             xs.append(x0)
