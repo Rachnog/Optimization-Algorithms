@@ -12,7 +12,7 @@ import numpy as np
 import math
 import matplotlib.pylab as pl
 
-variant = 6
+variant = 1
 
 
 def perpendicular(a):
@@ -23,8 +23,8 @@ def perpendicular(a):
 
 
 def fun(x):
-    return 4*(x[0]-5)**2 + (x[1]-6)**2
-    #return (x[0] - variant)**2 - x[0]*x[1] + 3*x[1]**2
+    #return 4*(x[0]-5)**2 + (x[1]-6)**2
+    return (x[0] - variant)**2 - x[0]*x[1] + 3*x[1]**2
     #return (x[0] - 3)**2 + x[0] * x[1] + 3 *x[1]**2
     
 

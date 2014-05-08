@@ -29,6 +29,7 @@ def funcError(x, y):
 def h(x0, deltax, epsilon1, epsilon2):
     print "Starting Hook-Jeeves..."
     xTB = [0,0]
+    points = []
     
     n = 1
     
@@ -37,6 +38,7 @@ def h(x0, deltax, epsilon1, epsilon2):
         
         while fun(xTB) < fun(x0):            
             print "x%d: fun[%8.5f, %8.5f] = %8.5f" %(n, xTB[0], xTB[1], fun(xTB))
+            points.append(xTB)
                        
             if round(pointError(x0, xTB),3) < epsilon1 and round(funcError(x0, xTB),3) < epsilon2:
                 print pointError(x0, xTB)
@@ -54,7 +56,9 @@ def h(x0, deltax, epsilon1, epsilon2):
         deltax[0] /= 2
         deltax[1] /= 2
         
-    print "END"   
+    print "END"  
+    plot(points)
+    print points
 
 
 def search(x0, deltax):
