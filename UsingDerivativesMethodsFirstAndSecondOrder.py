@@ -153,8 +153,8 @@ def hesse(x):
     return h        
     
 def fun(x):
-    return (x[0] - 6)**4 - x[0]*x[1] + 3*x[1]**4
-    #return 4*(x[0]-5)**2 + (x[1] - 6)**2  
+    #return (x[0] - 6)**4 - x[0]*x[1] + 3*x[1]**4
+    return 4*(x[0]-5)**2 + (x[1] - 6)**2  
     #return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
 
 def fixedGradient(x0, eps1, eps2):
@@ -277,15 +277,33 @@ def newton(x0, eps):
         x0 = calcX(x0, fin, lmb)
         print "!!!!" + str(x0)
         xs.append(x0)
-    plot(xs, 'yellow')    
+    plot(xs, 'yellow')  
+    return x0  
+
+def fletcherReeves(x0, eps):
+    s = gradient(x0)
+    i = 0
+    lmb = 0.1
+    xs = []
+    while norm(s) > eps:
+        i+=1
+        lmb = calcLambda(x0, s, eps, lmb)
+        x0 = calcX(x0, s, lmb)
+        gradK = gradient(x0)
+        s = sub(mults(s, -(norm(gradK)**2)/(norm(s)**2)), gradK)
+        xs.append(x0)
+    print "iterations: " + str(i) 
+    print x0  
+    return x0
+    plot(xs, 'black') 
 
 def main():
     point = [-3,3]
     fixedGradient(point, 0.01, 0.01)
     fastestDescent(point, 0.001, 0.1)
-    partan(point, 0.01, 0.01)
-    newton(point, 0.01)
-
+    #partan(point, 0.01, 0.01)
+    #newton(point, 0.01)
+    fletcherReeves(point, 0.01)
 
 if __name__ == '__main__':
    main()         
