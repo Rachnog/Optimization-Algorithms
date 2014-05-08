@@ -1,4 +1,4 @@
-OptimizationMethods
+Optimization Algorithms
 ===================
 
 Hello!
