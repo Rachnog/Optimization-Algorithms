@@ -199,6 +199,7 @@ def dfp(x0, eps1, eps2):
         iteration +=1
     plot(xs, 'red')    
     print count
+ 
     
 def main():
     point = [-3,3]
