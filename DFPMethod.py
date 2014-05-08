@@ -163,49 +163,94 @@ def hesse(x):
     
 def fun(x):
     incCount()
-    return (x[0] - 6)**2 - x[0]*x[1] + 3*x[1]**2
-    #return 4*(x[0]-5)**2 + (x[1] - 6)**2  
-    #return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
+    #return (x[0] - 6)**2 - x[0]*x[1] + 3*x[1]**2
+   # return 4*(x[0]-5)**2 + (x[1] - 6)**2  
+    return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
+    #return 8*x[0]**2 + 4*x[0]*x[1] + 5*x[1]**2
 
 def dfp(x0, eps1, eps2):
+    restart = 0
     iteration = 0
     xs = []
     xs.append(x0)
     lmb = 0.1
     A = np.eye(len(x0))
     
-    while True:
-        grad = gradient(x0)    
-        lmb = calcLambdaQuasi(x0,grad,eps1,lmb,A)
-        print lmb    
-        x1 = calcQuasiX(x0,A,grad,lmb)
-        print x1    
-        deltag =sub(gradient(x1), gradient(x0))
-        deltax = x1 - x0
+    while True:   
+            grad = gradient(x0)    
+            lmb = calcLambdaQuasi(x0,grad,eps2,lmb,A)
+            print lmb    
+            x1 = calcQuasiX(x0,A,grad,lmb)
+            print x1    
+            deltag = np.array(sub(gradient(x1), gradient(x0)))[np.newaxis]
+            deltax = x1 - x0
+            
+            if lmb < 0:
+                print "RESTART"
+                A = np.eye(len(x0))    
+                restart = restart+1                
+            
+            if iteration > 0:
+                if abs((fun(x1) - fun(x0))/fun(x0)) < eps1:
+                    print "break"
+                    break
         
-        if iteration > 0:
-            if abs((fun(x1) - fun(x0))/fun(x0)) < eps1:
-                print "break"
-                break
-        
-        first = (np.dot(deltax, np.transpose(deltax)))/(np.dot(np.transpose(deltax), deltax))
-        second = (np.dot(np.dot(A, deltag), np.dot(np.transpose(deltag), A)))/(np.dot(np.transpose(deltag), np.dot(A, deltag)))
-        A = A + first - second
-        x0 = x1
-        xs.append(x0)
-        print  A   
-        print x1
-        print "---------------------"
-        iteration +=1
-    plot(xs, 'red')    
-    print count
- 
-    
+            
+            deltax =  np.array(deltax)[np.newaxis]
+            deltaxT = np.array(deltax).T
+            deltagT = np.array(deltag).T
+            
+            # А теперь делаем так, чтобы работало на питоне :)
+            
+            deltax, deltaxT = deltaxT, deltax
+            deltag, deltagT = deltagT, deltag
+            
+            first = np.dot(deltax, deltaxT)
+            second = np.dot(deltaxT,deltag)
+            resOne = first/second
+            #print resOne
+            
+            first = np.dot(A, deltag)
+            second = np.dot(first, deltagT)
+            third = np.dot(second, A)
+            temp = third
+            
+            first = np.dot(deltagT, A)
+            second = np.dot(first, deltag)
+            
+            resTwo = temp/second
+            #print resTwo
+            
+            A = A + resOne - resTwo
+            print "MATRIX A"
+            print A
+            
+            """
+            if fun(x0) < fun(x1):
+                print "RESTART"
+                A = np.eye(len(x0))    
+                restart = restart+1
+            """    
+            
+            x0 = x1
+            xs.append(x0)
+            print x1
+            print "------------------------"
+            iteration +=1
+            plot(xs, 'red')    
+            print "FUNCTIONS COUNT"
+            print count 
+            print "ITERATIONS"
+            print iteration
+            print "RESTART"
+            print restart
+  
 def main():
-    point = [-3,3]
-    dfp(point, 0.1, 0.1)
+    dfp([-1.2,0], 0.001, 0.0001)
 
 
 if __name__ == '__main__':
-   main()         
+   main()  
+
+   
         
