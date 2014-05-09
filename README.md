@@ -21,7 +21,7 @@ Zero-dimensional methods (requires no derivative):
 
 Methods using derivative:
 - Fixed lambda gradient descent
-- Fastest descent (lambda calculates with one-dimensional search)
+- Fastest descent (Cauchy method)
 - Advanced partan (parallel tangents) algorithm
 - Newton method (requires second order derivative)
 - Fletcher-Reeves method
