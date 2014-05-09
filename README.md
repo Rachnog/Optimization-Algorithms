@@ -15,12 +15,12 @@ One-dimensional methods:
 - Newton search
 - Chords method
 
-Zero-dimensional methods (requires no derivative):
+Zero-dimensional methods (no derivative required):
 - Hook-Jeeves algorithm
 - Rozenbrock algorithm
 
 Methods using derivative:
-- Fixed lambda gradient descent
+- Gradient descent
 - Fastest descent (Cauchy method)
 - Advanced partan (parallel tangents) algorithm
 - Newton method (requires second order derivative)
