@@ -10,6 +10,15 @@ import matplotlib.pylab as pl
 
 count = 0
 
+def incCount():
+    global count
+    count = count+1
+
+def zeroCount():
+    global count
+    count = 0
+    
+
 def calcX(x0, grad, lmb):
     '''
         x0 - gradient*lambda
@@ -20,7 +29,7 @@ def svenn(x0, grad, lmb, delta):
     """
         One-dimensional Svenn search
     """
-    print "Svenn stage..."
+    #print "Svenn stage..."
     f0 = fun(calcX(x0, grad, lmb))
     if f0 < fun(calcX(x0, grad, lmb+delta)):
         delta = -delta
@@ -38,8 +47,8 @@ def svenn(x0, grad, lmb, delta):
         temp = b
         b = a
         a = temp     
-    print "svenn a: " + str(a)
-    print "svenn b: " + str(b)    
+    #print "svenn a: " + str(a)
+    #print "svenn b: " + str(b)    
     return [a , b]
 
 
@@ -184,11 +193,13 @@ def hesse(x):
     return h        
     
 def fun(x):
+    incCount()
     #return (x[0] - 6)**4 - x[0]*x[1] + 3*x[1]**4
     #return 4*(x[0]-5)**2 + (x[1] - 6)**2  
     return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
 
 def fixedGradient(x0, eps1, eps2):
+    zeroCount()
     """
         Just gradient descent with fixed lamba
         Lambda will be reduced, if next iteration gives worse (bigger) value
@@ -215,6 +226,7 @@ def fixedGradient(x0, eps1, eps2):
 
 
 def fastestDescent(x0, eps1, eps2):
+    zeroCount()
     """
         Gradient descent with lambda. calculated with one-deimensional search
     """
@@ -239,6 +251,7 @@ def fastestDescent(x0, eps1, eps2):
 
 
 def partan(x0, eps1, eps2):
+    zeroCount()
     """
         Parallel tangents method (advanced)
     """
@@ -275,6 +288,7 @@ def partan(x0, eps1, eps2):
     return x0    
 
 def newton(x0, eps):
+    zeroCount()
     """
         Newton second-order optimization method
     """
@@ -284,34 +298,36 @@ def newton(x0, eps):
     while norm(gradient(x0)) > eps:
         hesseMatrix = hesse(x0)
         hesseMatrix = np.reshape(hesseMatrix, (-1, len(x0)))
-        print "hesse: " 
-        print hesseMatrix
+        #print "hesse: " 
+        #print hesseMatrix
         grad = gradient(x0)
-        print "grad" + str(grad)
+        #print "grad" + str(grad)
         invHesse = np.linalg.pinv(np.array(hesseMatrix))
-        print "hesse inv " 
-        print invHesse
+        #print "hesse inv " 
+        #print invHesse
         transGrad = np.transpose(np.array([grad])) 
-        print "transpose grad"
-        print transGrad
+        #print "transpose grad"
+        #print transGrad
         res = np.dot(invHesse, transGrad)
-        print "res "
-        print res
+        #print "res "
+        #print res
         normNow = norm(np.transpose(res)[0])
-        print "norm" 
-        print normNow
+        #print "norm" 
+        #print normNow
         fin = mults(np.transpose(res)[0], 1/normNow)
-        print "fin "
-        print fin
-        lmb = calcLambda(x0, fin, eps, lmb)
-        print "lambda " + str(lmb)
+        #print "fin "
+        #print fin
+        #lmb = calcLambda(x0, fin, eps, lmb)
+        lmb = dscPowell(x0, fin, eps, 0, 0.1)
+        #print "lambda " + str(lmb)
         x0 = calcX(x0, fin, lmb)
-        print "!!!!" + str(x0)
+        print x0
         xs.append(x0)
     plot(xs, 'yellow')  
     return x0  
 
 def fletcherReeves(x0, eps):
+    zeroCount()
     s = gradient(x0)
     i = 0
     lmb = 0.1
@@ -321,22 +337,57 @@ def fletcherReeves(x0, eps):
         i+=1
         #lmb = calcLambda(x0, s, eps, lmb)
         lmb = dscPowell(x0, s, 0.001, 0, 0.1)
-        x0 = calcX(x0, s, lmb)        
+        x0 = calcX(x0, s, lmb)
+        print x0            
         xs.append(x0)
         gradK = gradient(x0)
         s = sub(mults(s, -(norm(gradK)**2)/(norm(s)**2)), gradK)
     print "iterations: " + str(i) 
-    print x0      
+    print "calculations: " + str(count)
     plot(xs, 'yellow') 
     return x0
 
+def conjugatedDirection(x0, eps, eps2):
+    zeroCount()
+    iteration = 0
+    si = np.eye(len(x0))
+    xn = mults(x0, -1)
+    xs = []
+    xs.append(x0)
+    while norm(sub(xn, x0)) > 0.1 * eps:
+        iteration+=1
+        x0 = xn
+        xi = x0
+        fi = []
+
+        for i in xrange(len(x0)):
+            lmb = dscPowell(xi, si[i], eps2, 0, 0.1)
+            xn = calcX(xi, si[i], lmb)
+            fi.append(fun(xi) - fun(xn))
+            xi = xn
+        for i in xrange(len(si)-1):
+            si[i] = si[i+1]
+
+        si[len(si)-1] = sub(xn, x0)
+        lmb =  dscPowell(xn, si[len(si) - 1], eps2, 0, 0.1)
+        xn = calcX(xn, si[len(si) - 1], lmb)
+        print xn
+        xs.append(xn)
+    plot(xs, 'red')       
+    print "calculations: " + str(count)
+    return xn              
+            
+                            
+
+
 def main():
-    point = [-1.9,0]
-   # fixedGradient(point, 0.001, 0.001)
-    fastestDescent(point, 0.001, 0.001)
+    point = [-1.2,0]
+    #fixedGradient(point, 0.001, 0.001)
+    #fastestDescent(point, 0.0001, 0.00001)
     #partan(point, 0.01, 0.01)
     #newton(point, 0.01)
-    fletcherReeves(point, 0.001)
+    fletcherReeves(point, 0.01)
+    conjugatedDirection(point, 0.01, 0.01)
 
 if __name__ == '__main__':
    main()         
