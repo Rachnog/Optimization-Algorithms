@@ -125,7 +125,7 @@ def plot(points, col):
     ys = []
     
     pl.contourf(X, Y, fun([X, Y]), 8, alpha=.75, cmap='jet')
-    C = pl.contour(X, Y, fun([X, Y]), 8, colors='black', linewidth=.5) 
+    pl.contour(X, Y, fun([X, Y]), 8, colors='black', linewidth=.5) 
     
     for i in range(len(points)):
         xs.append(points[i][0])
@@ -158,9 +158,9 @@ def derivative(x, n):
             h.append(0.000000000001)
         else:
             h.append(0)
-    return (fun([x[0] + h[0], x[1] + h[1]]) - fun([x[0] - h[0], x[1] - h[1]]))/(2*h[n])
+    #return (fun([x[0] + h[0], x[1] + h[1]]) - fun([x[0] - h[0], x[1] - h[1]]))/(2*h[n])
     #return (fun([x[0] + h[0], x[1] + h[1]]) - fun(x)/(h[n]))     
-    #return (fun(x) - fun([x[0] - h[0], x[1] - h[1]]))/(h[n])  # разностная схема назад - ок      
+    return (fun(x) - fun([x[0] - h[0], x[1] - h[1]]))/(h[n])  # разностная схема назад - ок      
 
 def derivative2(x, a, b):
     ai = []
@@ -200,8 +200,8 @@ def fun(x):
     incCount()
     #return (x[0] - 6)**2 - x[0]*x[1] + 3*x[1]**2
    # return 4*(x[0]-5)**2 + (x[1] - 6)**2  
-    # return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
-    return (10*(x[0] - x[1])**2 + (x[0] - 1)**2)**4
+    return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
+    #return (10*(x[0] - x[1])**2 + (x[0] - 1)**2)**4
     #return 8*x[0]**2 + 4*x[0]*x[1] + 5*x[1]**2
 
 def dfp(x0, eps1, eps2):
@@ -209,7 +209,7 @@ def dfp(x0, eps1, eps2):
     iteration = 0
     xs = []
     xs.append(x0)
-    lmb = 0.001
+    lmb = 0.01
     A = np.eye(len(x0))
     
     print x0
@@ -217,7 +217,7 @@ def dfp(x0, eps1, eps2):
     while True:   
             grad = gradient(x0)    
             #lmb = calcLambdaQuasi(x0,grad,eps2,lmb,A)
-            lmb = dscPowellQuasi(x0, grad, eps2, lmb, 0.001, A)
+            lmb = dscPowellQuasi(x0, grad, eps2, lmb, 0.01, A)
             #print lmb    
             x1 = calcQuasiX(x0,A,grad,lmb)
             #print x1    
@@ -284,7 +284,8 @@ def dfp(x0, eps1, eps2):
             
   
 def main():
-    dfp([-1.2,0], 0.01, 0.09)
+    dfp([-1.2,0], 0.001, 0.001)
+    plot([[1,1]], 'yellow')
 
 
 if __name__ == '__main__':
