@@ -41,7 +41,38 @@ def svenn(x0, grad, lmb, delta):
     print "svenn a: " + str(a)
     print "svenn b: " + str(b)    
     return [a , b]
-        
+
+
+def dsc(x0, grad, lmb, delta):
+    svenn_res = svenn(x0, grad, lmb, delta)
+    x1 = svenn_res[0]
+    x3 = svenn_res[1]
+    x2 = (x1 + x3)/2
+    f1 = fun(calcX(x0, grad, x1))
+    f2 = fun(calcX(x0, grad, x2))
+    f3 = fun(calcX(x0, grad, x3))
+    xApprox = x2 + ((x3 - x2) * (f1 - f3)) / (2 * (f1 - 2 * f2 + f3))
+    return [x1, x2, x3, xApprox]
+
+
+def dscPowell(x0, grad, eps, lmb, delta):
+    dsc_res = dsc(x0, grad, lmb, delta)
+    a = dsc_res[0]
+    xmin = dsc_res[1]
+    b = dsc_res[2]
+    xApprox = dsc_res[3]
+
+    while abs(xmin-xApprox) >= eps or abs(fun(calcX(x0, grad, xmin)) - fun(calcX(x0, grad, xApprox))) >= eps:
+        if xApprox < xmin:
+            b = xmin
+        else:
+            a = xmin
+        xmin = xApprox
+        funcRes =  [fun(calcX(x0, grad, a)), fun(calcX(x0, grad, xmin)), fun(calcX(x0, grad, b))]
+        a1 = (funcRes[1] - funcRes[0]) / (xmin - a)
+        a2 = ((funcRes[2] - funcRes[0]) / (b - a) - a1) / (b - xmin)
+        xApprox = (a + xmin) / 2 - a1 / (2 * a2)
+    return xmin          
 
 def gold(a, b, eps, x0, grad):
     """
@@ -154,8 +185,8 @@ def hesse(x):
     
 def fun(x):
     #return (x[0] - 6)**4 - x[0]*x[1] + 3*x[1]**4
-    return 4*(x[0]-5)**2 + (x[1] - 6)**2  
-    #return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
+    #return 4*(x[0]-5)**2 + (x[1] - 6)**2  
+    return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
 
 def fixedGradient(x0, eps1, eps2):
     """
@@ -285,25 +316,27 @@ def fletcherReeves(x0, eps):
     i = 0
     lmb = 0.1
     xs = []
+    xs.append(x0)
     while norm(s) > eps:
         i+=1
-        lmb = calcLambda(x0, s, eps, lmb)
-        x0 = calcX(x0, s, lmb)
+        #lmb = calcLambda(x0, s, eps, lmb)
+        lmb = dscPowell(x0, s, 0.001, 0, 0.1)
+        x0 = calcX(x0, s, lmb)        
+        xs.append(x0)
         gradK = gradient(x0)
         s = sub(mults(s, -(norm(gradK)**2)/(norm(s)**2)), gradK)
-        xs.append(x0)
     print "iterations: " + str(i) 
-    print x0  
+    print x0      
+    plot(xs, 'yellow') 
     return x0
-    plot(xs, 'black') 
 
 def main():
-    point = [-3,3]
-    fixedGradient(point, 0.01, 0.01)
-    fastestDescent(point, 0.001, 0.1)
+    point = [-1.9,0]
+   # fixedGradient(point, 0.001, 0.001)
+    fastestDescent(point, 0.001, 0.001)
     #partan(point, 0.01, 0.01)
     #newton(point, 0.01)
-    fletcherReeves(point, 0.01)
+    fletcherReeves(point, 0.001)
 
 if __name__ == '__main__':
    main()         

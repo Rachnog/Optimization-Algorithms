@@ -4,7 +4,7 @@ Created on Mon Apr 21 13:46:36 2014
 @author: Alex
 
 Davidson-Fletcher-Powell optimization algorithm
-Uses Svenn and gold search for one-dimensional search
+Uses Davies-Svenn-Campy-Powell for one-dimensional search
 """
 import math
 import numpy as np
@@ -31,7 +31,7 @@ def svennQuasi(x0, grad, lmb, delta, A):
     """
         One-dimensional Svenn search
     """
-    print "Svenn stage..."
+    #print "Svenn stage..."
     f0 = fun(calcQuasiX(x0, A, grad, lmb))
     if f0 < fun(calcQuasiX(x0, A, grad, lmb+delta)):
         delta = -delta
@@ -49,10 +49,41 @@ def svennQuasi(x0, grad, lmb, delta, A):
         temp = b
         b = a
         a = temp     
-    print "svenn a: " + str(a)
-    print "svenn b: " + str(b)    
+    #print "svenn a: " + str(a)
+    #print "svenn b: " + str(b)    
     return [a , b]
-        
+
+def dscQuasi(x0, grad, lmb, delta, A):
+    svenn_res = svennQuasi(x0, grad, lmb, delta, A)
+    x1 = svenn_res[0]
+    x3 = svenn_res[1]
+    x2 = (x1 + x3)/2
+    f1 = fun(calcQuasiX(x0, A, grad, x1))
+    f2 = fun(calcQuasiX(x0, A, grad, x2))
+    f3 = fun(calcQuasiX(x0, A, grad, x3))
+    xApprox = x2 + ((x3 - x2) * (f1 - f3)) / (2 * (f1 - 2 * f2 + f3))
+    return [x1, x2, x3, xApprox]
+
+
+def dscPowellQuasi(x0, grad, eps, lmb, delta, A):
+    dsc_res = dscQuasi(x0, grad, lmb, delta, A)
+    a = dsc_res[0]
+    xmin = dsc_res[1]
+    b = dsc_res[2]
+    xApprox = dsc_res[3]
+
+    while abs(xmin-xApprox) >= eps or abs(fun(calcQuasiX(x0, A, grad, xmin)) - fun(calcQuasiX(x0, A, grad, xApprox))) >= eps:
+        if xApprox < xmin:
+            b = xmin
+        else:
+            a = xmin
+        xmin = xApprox
+        funcRes =  [fun(calcQuasiX(x0, A, grad, a)), fun(calcQuasiX(x0, A, grad, xmin)), fun(calcQuasiX(x0, A, grad, b))]
+        a1 = (funcRes[1] - funcRes[0]) / (xmin - a)
+        a2 = ((funcRes[2] - funcRes[0]) / (b - a) - a1) / (b - xmin)
+        xApprox = (a + xmin) / 2 - a1 / (2 * a2)
+    return xmin      
+
 #done
 def goldQuasi(a, b, eps, x0, grad, A):
     """
@@ -128,6 +159,8 @@ def derivative(x, n):
         else:
             h.append(0)
     return (fun([x[0] + h[0], x[1] + h[1]]) - fun([x[0] - h[0], x[1] - h[1]]))/(2*h[n])
+    #return (fun([x[0] + h[0], x[1] + h[1]]) - fun(x)/(h[n]))     
+    #return (fun(x) - fun([x[0] - h[0], x[1] - h[1]]))/(h[n])  # разностная схема назад - ок      
 
 def derivative2(x, a, b):
     ai = []
@@ -167,7 +200,8 @@ def fun(x):
     incCount()
     #return (x[0] - 6)**2 - x[0]*x[1] + 3*x[1]**2
    # return 4*(x[0]-5)**2 + (x[1] - 6)**2  
-    return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
+    # return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
+    return (10*(x[0] - x[1])**2 + (x[0] - 1)**2)**4
     #return 8*x[0]**2 + 4*x[0]*x[1] + 5*x[1]**2
 
 def dfp(x0, eps1, eps2):
@@ -175,15 +209,18 @@ def dfp(x0, eps1, eps2):
     iteration = 0
     xs = []
     xs.append(x0)
-    lmb = 0.1
+    lmb = 0.001
     A = np.eye(len(x0))
     
+    print x0
+    print "------------------------"
     while True:   
             grad = gradient(x0)    
-            lmb = calcLambdaQuasi(x0,grad,eps2,lmb,A)
-            print lmb    
+            #lmb = calcLambdaQuasi(x0,grad,eps2,lmb,A)
+            lmb = dscPowellQuasi(x0, grad, eps2, lmb, 0.001, A)
+            #print lmb    
             x1 = calcQuasiX(x0,A,grad,lmb)
-            print x1    
+            #print x1    
             deltag = np.array(sub(gradient(x1), gradient(x0)))[np.newaxis]
             deltax = x1 - x0
             
@@ -192,9 +229,19 @@ def dfp(x0, eps1, eps2):
                 A = np.eye(len(x0))    
                 restart = restart+1                
             
+            error_point = norm(sub(x1, x0))/norm(x0)
+            error_func = abs(fun(x1) - fun(x0))/abs(fun(x0))
+            
             if iteration > 0:
-                if abs((fun(x1) - fun(x0))/fun(x0)) < eps1:
-                    print "break"
+                if error_point < eps1 and error_func < eps1:
+                    print "break"   
+                    print "FUNCTIONS COUNT"
+                    print count 
+                    print "ITERATIONS"
+                    print iteration
+                    print "RESTARTS"
+                    print restart
+                    plot(xs, 'red') 
                     break
         
             
@@ -224,24 +271,20 @@ def dfp(x0, eps1, eps2):
             #print resTwo
             
             A = A + resOne - resTwo
-            print "MATRIX A"
-            print A 
+            #print "MATRIX A"
+            #print A 
             
             x0 = x1
             xs.append(x0)
             print x1
+            print "FUNCTIONS COUNT"
+            print count
             print "------------------------"
             iteration +=1
-            plot(xs, 'red')    
-            print "FUNCTIONS COUNT"
-            print count 
-            print "ITERATIONS"
-            print iteration
-            print "RESTART"
-            print restart
+            
   
 def main():
-    dfp([-1.2,0], 0.001, 0.0001)
+    dfp([-1.2,0], 0.01, 0.09)
 
 
 if __name__ == '__main__':
