@@ -25,6 +25,7 @@ Methods using derivative:
 - Advanced partan (parallel tangents) algorithm
 - Newton method (requires second order derivative)
 - Fletcher-Reeves method
+- Conjugated directions algorithm
 
 Other methods:
 - Davidson-Fletcher-Powell method
