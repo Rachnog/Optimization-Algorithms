@@ -44,14 +44,26 @@ def svennQuasi(x0, grad, lmb, delta, A):
         f0 = f1
         f1 = fun(calcQuasiX(x0, A, grad, x1))
     a = lmb + delta/2
-    b = lmb - delta/2        
-    if a > b:
-        temp = b
-        b = a
-        a = temp     
-    #print "svenn a: " + str(a)
-    #print "svenn b: " + str(b)    
-    return [a , b]
+    b = lmb - delta/2    
+    f0 = fun(calcQuasiX(x0, A, grad, lmb))
+    f1 = fun(calcQuasiX(x0, A, grad, b))    
+    
+    if f0 < f1:
+        if a < b:
+            return [a, b]
+        else:
+            return [b, a]
+    elif f1 < f0:
+        if lmb < x1:
+            return [lmb, x1]
+        else:
+            return [x1, lmb]
+    else:
+        if lmb < b:
+            return [lmb, b]
+        else:
+            return [b, lmb]
+
 
 def dscQuasi(x0, grad, lmb, delta, A):
     svenn_res = svennQuasi(x0, grad, lmb, delta, A)
@@ -89,22 +101,25 @@ def goldQuasi(a, b, eps, x0, grad, A):
     """
         One-dimensional gold search
     """
-    l = b - a
-    x1 = a + 0.382*l
-    x2 = a + 0.618*l
+    l = sub(b,a)
+    x1 = add(a, mults(l, 0.382))
+    x2 = add(a, mults(l, 0.618))
     while l > eps:
         if fun(calcQuasiX(x0, A, grad, x1)) < fun(calcQuasiX(x0, A, grad, x2)):
             b = x2
             x2 = x1
-            l = b - a
-            x1 = a + 0.382*l
+            l = sub(b,a)
+            x1 = add(a, mults(l, 0.382))
+            print "gold a: " + str(a)
+            print "gold b: " + str(b) 
         else:
             a = x1
             x1 = x2
-            l = b - a
-            x2 = a + 0.618*l
-    print "gold a: " + str(a)
-    print "gold b: " + str(b)    
+            l = sub(b,a)
+            x2 = add(a, mults(l, 0.618))
+            print "gold a: " + str(a)
+            print "gold b: " + str(b) 
+   
     return [a, b]            
  
 #done           
@@ -155,12 +170,14 @@ def derivative(x, n):
     h = []
     for i in xrange(len(x)):
         if i == n:
-            h.append(0.000000000001)
+            h.append(1e-5)
         else:
             h.append(0)
-    #return (fun([x[0] + h[0], x[1] + h[1]]) - fun([x[0] - h[0], x[1] - h[1]]))/(2*h[n])
+    return (fun([x[0] + h[0], x[1] + h[1]]) - fun([x[0] - h[0], x[1] - h[1]]))/(2*h[n])
     #return (fun([x[0] + h[0], x[1] + h[1]]) - fun(x)/(h[n]))     
-    return (fun(x) - fun([x[0] - h[0], x[1] - h[1]]))/(h[n])  # разностная схема назад - ок      
+    #return (fun(x) - fun([x[0] - h[0], x[1] - h[1]]))/(h[n])  # разностная схема назад - ок   
+    
+    
 
 def derivative2(x, a, b):
     ai = []
@@ -199,10 +216,13 @@ def hesse(x):
 def fun(x):
     incCount()
     #return (x[0] - 6)**2 - x[0]*x[1] + 3*x[1]**2
-   # return 4*(x[0]-5)**2 + (x[1] - 6)**2  
-    return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
+    ##return 4*(x[0]-5)**2 + (x[1] - 6)**2  
+    #return (x[0]-1)**2 + 100*(x[0]**2 - x[1])**2
     #return (10*(x[0] - x[1])**2 + (x[0] - 1)**2)**4
-    #return 8*x[0]**2 + 4*x[0]*x[1] + 5*x[1]**2
+    #return (10*(x[0] - x[1])**2 + (x[0] - 1)**2)**(1/4)
+    #return 8*x[0]**2 + 4*x[0]*x[1] + 5*x[1]**4
+    #return (x[1]**3 + x[0]**2-3*x[1])**4 - (x[0]**3-x[1]**2-3*x[0]) - x[1]**2 + 3   
+    return x[0]**3 + x[1]**3 - 3*x[0]*x[1]
 
 def dfp(x0, eps1, eps2):
     restart = 0
@@ -215,25 +235,12 @@ def dfp(x0, eps1, eps2):
     print x0
     print "------------------------"
     while True:   
-            grad = gradient(x0)    
-            #lmb = calcLambdaQuasi(x0,grad,eps2,lmb,A)
-            lmb = dscPowellQuasi(x0, grad, eps2, lmb, 0.01, A)
-            #print lmb    
-            x1 = calcQuasiX(x0,A,grad,lmb)
-            #print x1    
-            deltag = np.array(sub(gradient(x1), gradient(x0)))[np.newaxis]
-            deltax = x1 - x0
-            
-            if lmb < 0:
-                print "RESTART"
-                A = np.eye(len(x0))    
-                restart = restart+1                
-            
-            error_point = norm(sub(x1, x0))/norm(x0)
-            error_func = abs(fun(x1) - fun(x0))/abs(fun(x0))
+                
+            grad = gradient(x0)
             
             if iteration > 0:
-                if error_point < eps1 and error_func < eps1:
+                if norm(grad) < eps1:
+                    print "========================="
                     print "break"   
                     print "FUNCTIONS COUNT"
                     print count 
@@ -242,9 +249,21 @@ def dfp(x0, eps1, eps2):
                     print "RESTARTS"
                     print restart
                     plot(xs, 'red') 
-                    break
-        
+                    break  
+                
+            lmb = dscPowellQuasi(x0, grad, eps2, lmb, 0.01, A)
             
+            if lmb < 0:
+                print "RESTART"
+                A = np.eye(len(x0))    
+                restart = restart+1   
+                
+            x1 = calcQuasiX(x0, A, grad, lmb)
+                                    
+            deltag = np.array(sub(gradient(x1), gradient(x0)))[np.newaxis]
+            deltax = sub(x1, x0)
+                         
+          
             deltax =  np.array(deltax)[np.newaxis]
             deltaxT = np.array(deltax).T
             deltagT = np.array(deltag).T
@@ -276,16 +295,27 @@ def dfp(x0, eps1, eps2):
             
             x0 = x1
             xs.append(x0)
+            print "POINT"
             print x1
             print "FUNCTIONS COUNT"
             print count
+            print "LAMBDA"
+            print lmb
+            print "INV A"
+            print np.linalg.inv(A)
+            #print "HESSE"
+            #print hesse(x1)
             print "------------------------"
             iteration +=1
             
+    print "=============================="
+    print x1      
+            
   
 def main():
-    dfp([-1.2,0], 0.001, 0.001)
-    plot([[1,1]], 'yellow')
+    dfp([11, 5], 0.01, 0.01)
+    
+    
 
 
 if __name__ == '__main__':

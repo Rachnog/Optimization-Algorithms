@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """
 Created on Sun Apr 06 14:01:22 2014
 
@@ -43,13 +43,21 @@ def svenn(x0, grad, lmb, delta):
         f1 = fun(calcX(x0, grad, x1))
     a = lmb + delta/2
     b = lmb - delta/2        
-    if a > b:
-        temp = b
-        b = a
-        a = temp     
-    #print "svenn a: " + str(a)
-    #print "svenn b: " + str(b)    
-    return [a , b]
+    if f0 < f1:
+        if a < b:
+            return [a, b]
+        else:
+            return [b, a]
+    elif f1 < f0:
+        if lmb < x1:
+            return [lmb, x1]
+        else:
+            return [x1, lmb]
+    else:
+        if lmb < b:
+            return [lmb, b]
+        else:
+            return [b, lmb]
 
 
 def dsc(x0, grad, lmb, delta):
@@ -111,12 +119,32 @@ def calcLambda(x0, grad, eps, lmb):
     line = gold(line[0], line[1], eps, x0, grad)
     lmb = (line[0] + line[1])/2
     return lmb    
+
+def plot3D(points, col):
+    n = 256
+    x = np.linspace(-100, 100, n)
+    y = np.linspace(-100, 100, n)
+    z = np.linspace(-100, 100, n)
+    X, Y, Z = np.meshgrid(x, y, z)
     
+    xs = []
+    ys = []
+    zs = []
+    
+    #pl.contourf(X, Y, Z, fun([X, Y, Z]), 8, alpha=.75, cmap='jet')
+    #C = pl.contour(X, Y, Z, fun([X, Y, Z]), 8, colors='black', linewidth=.5) 
+    
+    for i in range(len(points)):
+        xs.append(points[i][0])
+        ys.append(points[i][1])
+        zs.append(points[i][2])
+    
+    pl.plot(xs, ys, marker='o', linestyle='--', color=str(col), label='Square')    
 
 def plot(points, col):
     n = 256
-    x = np.linspace(-12, 12, n)
-    y = np.linspace(-12, 12, n)
+    x = np.linspace(-5, 5, n)
+    y = np.linspace(-5, 5, n)
     X, Y = np.meshgrid(x, y)
     
     xs = []
@@ -194,9 +222,14 @@ def hesse(x):
     
 def fun(x):
     incCount()
-    #return (x[0] - 6)**4 - x[0]*x[1] + 3*x[1]**4
+    
     #return 4*(x[0]-5)**2 + (x[1] - 6)**2  
-    return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
+    #return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2
+    #return (10*(x[0] - x[1])**2 + (x[0] - 1)**2)**(1/4)
+    #return 4*(x[0]-4)**2 + x[0]*x[1] + 3*x[1]**2
+    #return 2*x[0]**2 + x[0]*x[1] + 3*x[1]**2
+    return x[0]**3 + x[1]**3 - 3*x[0]*x[1]
+
 
 def fixedGradient(x0, eps1, eps2):
     zeroCount()
@@ -228,7 +261,7 @@ def fixedGradient(x0, eps1, eps2):
 def fastestDescent(x0, eps1, eps2):
     zeroCount()
     """
-        Gradient descent with lambda. calculated with one-deimensional search
+        Gradient descent with lambda. calculated with one-dimensional search
     """
     print "fastest descent goes!"
     xs = []
@@ -323,31 +356,37 @@ def newton(x0, eps):
         x0 = calcX(x0, fin, lmb)
         print x0
         xs.append(x0)
-    plot(xs, 'yellow')  
+    plot(xs, 'green')  
+    print "calculations: " + str(count)
     return x0  
 
 def fletcherReeves(x0, eps):
     zeroCount()
     s = gradient(x0)
     i = 0
-    lmb = 0.1
     xs = []
     xs.append(x0)
     while norm(s) > eps:
         i+=1
-        #lmb = calcLambda(x0, s, eps, lmb)
-        lmb = dscPowell(x0, s, 0.001, 0, 0.1)
+        lmb = dscPowell(x0, s, 0.00000001, 0, 0.1 * norm(x0) / norm(s))
+        print "LMB"
+        print lmb
+        print "S"
+        print s
         x0 = calcX(x0, s, lmb)
+        print "X"
         print x0            
         xs.append(x0)
         gradK = gradient(x0)
         s = sub(mults(s, -(norm(gradK)**2)/(norm(s)**2)), gradK)
+        if norm(s) < eps:
+            s = gradK
     print "iterations: " + str(i) 
     print "calculations: " + str(count)
     plot(xs, 'yellow') 
     return x0
 
-def conjugatedDirection(x0, eps, eps2):
+def conjugatedDirectionPowell(x0, eps, eps2):
     zeroCount()
     iteration = 0
     si = np.eye(len(x0))
@@ -376,18 +415,62 @@ def conjugatedDirection(x0, eps, eps2):
     plot(xs, 'red')       
     print "calculations: " + str(count)
     return xn              
+
+
+def conjugatedDirection(x0, eps):
+    xs = []
+    s = np.array(gradient(x0))[np.newaxis].T
+    while norm(gradient(x0)) > eps:
+        print "START S"
+        print s
+        hesseM = ([[hesse(x0)[0], hesse(x0)[1]], [hesse(x0)[2], hesse(x0)[3]]])
+        grad = np.array(gradient(x0))[np.newaxis].T
+
+        up = np.dot(grad.T, s)
+        down =  np.dot(s.T, hesseM)
+        down = np.dot(down, s)
+        lmb = up/down
+        
+        xn = calcX(x0, s, lmb)  
+        
+        if math.isnan(xn[0]) or math.isnan(xn[1]):
+            print "NAN"
+            return x0
+        
+        calc = (hesseM[0][0]*s[0])/(hesseM[1][1]*s[1])
+        
+        s[0] = math.sqrt(1/(1+calc))
+        s[1] = s[0]*calc[0]
+        
+        s = np.array(s)[np.newaxis].T 
+        
+        print "END S"
+        print s  
+        
+        news = [s[0][0][0] , s[0][1][0]]
+        newxn = [xn[0][0][0], xn[1][0][0]]
+        
+        s = np.array(news)[np.newaxis].T
+        xn = newxn
+        x0 = xn
+        print xn
+        xs.append(xn)
+    plot(xs, "red")   
+    print count
+    
+    
+    
             
-                            
-
-
 def main():
-    point = [-1.2,0]
-    #fixedGradient(point, 0.001, 0.001)
-    #fastestDescent(point, 0.0001, 0.00001)
+    point = [3,5]
+    #fixedGradient(point, 0.01, 0.01)
+    #fastestDescent(point, 0.01, 0.01)
     #partan(point, 0.01, 0.01)
     #newton(point, 0.01)
-    fletcherReeves(point, 0.01)
-    conjugatedDirection(point, 0.01, 0.01)
+    #fletcherReeves(point, 0.001)
+    #conjugatedDirectionPowell(point, 0.01, 0.001)
+    
+    #conjugatedDirection(point, 0.00001)
 
 if __name__ == '__main__':
    main()         

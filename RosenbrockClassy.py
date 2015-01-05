@@ -13,6 +13,12 @@ import math
 import matplotlib.pylab as pl
 
 count = 0
+    
+def norm(s1):
+    normas = 0
+    for i in xrange(len(s1)):
+        normas += s1[i]**2
+    return math.sqrt(normas)      
 
 def incCount():
     global count
@@ -30,8 +36,8 @@ def fun(x):
     #return 4*(x[0]-5)**2 + (x[1]-6)**2
     #return (x[0] - variant)**2 - x[0]*x[1] + 3*x[1]**2
     #return (x[0] - 3)**2 + x[0] * x[1] + 3 *x[1]**2
-    return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2  
-    #return (10*(x[0] - x[1])**2 + (x[0] - 1)**2)**4
+    #return (1-x[0])**2 + 100*(x[1] - x[0]**2)**2  
+    return (10*(x[0] - x[1])**2 + (x[0] - 1)**2)**4
 
 def constraintFunCircle(x):
     '''
@@ -44,7 +50,17 @@ def constraintFunLine(x):
     """
         Не меняем знак???
     """
-    return 1 - x[0] - x[1]
+    return 1 - x[0] - 2*x[1]
+
+
+def constraintFunFignya(x):
+    return -(x[1]**3 + x[0]**2-3*x[1])**4 - (x[0]**3-x[1]**2-3*x[0]) - x[1]**2 + 3
+
+def outCircle(x):
+    return -(x[0]-5)**2 - (x[1]-5)**2 + 10
+
+def innerCircle(x):
+    return 2*(x[0]+0.5)**2 + (x[1]+0.7)**2 - 1
 
 def plot(points):
     '''
@@ -66,12 +82,7 @@ def plot(points):
         ys.append(points[i][1])
     
     pl.plot(xs, ys, marker='o', linestyle='--', color='r', label='Square')    
-    
-    
- 
-def norm(s1):
-    return math.sqrt(s1[0]**2 + s1[1]**2)
- 
+     
  
 def rozenbrock(x0, lmb, epsilon1, epsilon2, alpha, beta):
     """
@@ -117,10 +128,19 @@ def rozenbrock(x0, lmb, epsilon1, epsilon2, alpha, beta):
         elif fun(x2) > fun(x0):
             success2.append("N")
             lmb[1] *= beta
-
+        
+        if constraintFunCircle(x0) >= 0:
+            lmb[0] /= 2
+            lmb[1] /= 2
+            print "lmb reduced cause of constraint"
+            print lmb
+            x0 = temp[:]
+            continue
+ 
         if success1[len(success1)-1] == "N" and success2[len(success2)-1] == "N" and "Y" in success1 and "Y" in success2:
             print "Our stop point: [%8.5f, %8.5f]" % (x0[0], x0[1])
             s1 = [x0[0] - start[0], x0[1] - start[1]]
+            print "S1" + str(s1)
             norma = norm(s1)
             s1[0] /= norma
             s1[1] /= norma
@@ -146,15 +166,18 @@ def rozenbrock(x0, lmb, epsilon1, epsilon2, alpha, beta):
                     
             print "___________________________________________________________________________"
         iterations+=1 
-
-        
+    
+      
+    #xOne = dsc_pauell(x0, 0.1, epsilon2)
+    #print xOne    
     plot(points)   
     print "FUNCTIONS COUNT = " + str(count)
+    print "RESULT " + str(x0)
 
 
 def main():
-    x0 = [-1.2, 0]
-    rozenbrock(x0, [0.3, 0.1], 0.01, 0.01, 3, -0.5)    
+    x0 = [4, 4]
+    rozenbrock(x0, [0.3, 0.1], 0.001, 0.001, 2.9, -0.5)    
     
     
 if __name__ == '__main__':

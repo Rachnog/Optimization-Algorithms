@@ -17,7 +17,7 @@ def norm(s1):
 
 
 def fun(dot):
-    return (dot[0] - 2)**2 + 3*dot[1]**2
+    return (dot[0] - 2)**2 + (dot[1]-2)**2
 
 def pointError(x, y):
     return norm([x[0] - y[0], x[1] - y[1]])/norm(y)
@@ -33,19 +33,20 @@ def h(x0, deltax, epsilon1, epsilon2):
     
     n = 1
     
-    while round(pointError(xTB, x0),3) > epsilon1 or round(funcError(xTB, x0),3) > epsilon2:
+    while round(pointError(xTB, x0),3) > epsilon1: #or round(funcError(xTB, x0),3) > epsilon2:
         xTB = search(x0, deltax)
         
         while fun(xTB) < fun(x0):            
             print "x%d: fun[%8.5f, %8.5f] = %8.5f" %(n, xTB[0], xTB[1], fun(xTB))
             points.append(xTB)
                        
-            if round(pointError(x0, xTB),3) < epsilon1 and round(funcError(x0, xTB),3) < epsilon2:
+            if round(pointError(x0, xTB),3) < epsilon1: #and round(funcError(x0, xTB),3) < epsilon2:
                 print pointError(x0, xTB)
                 print funcError(x0, xTB)
                 break
             
             xR = [2*xTB[0] - x0[0], 2*xTB[1] - x0[1]]
+            print "xR" + str(xR) + "fun(xR)" + str(fun(xR))
             
             if fun(xTB) < fun(x0):
                 x0 = xTB[:]
@@ -97,3 +98,12 @@ def plot(points):
         ys.append(points[i][1])
     
     pl.plot(xs, ys, marker='o', linestyle='--', color='r', label='Square')            
+    
+def main():
+    h([-2, 2], [0.5, 0.5], 0.01, 0.01)
+    #plot([[1,1]], 'yellow')
+    
+
+
+if __name__ == '__main__':
+   main()  
